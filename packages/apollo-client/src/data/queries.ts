@@ -94,7 +94,8 @@ export class QueryStore {
     this.store[query.queryId] = {
       document: query.document,
       isDeferred: query.document.definitions
-        ? hasDirectives(['defer'], query.document)
+        ? hasDirectives(['defer'], query.document) ||
+          hasDirectives(['stream'], query.document)
         : false,
       variables: query.variables,
       previousVariables,

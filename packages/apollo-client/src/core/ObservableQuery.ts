@@ -233,7 +233,10 @@ export class ObservableQuery<
     if (queryStoreValue) {
       result.loadingState = queryStoreValue.compactedLoadingState;
     } else {
-      if (hasDirectives(['defer'], this.options.query)) {
+      if (
+        hasDirectives(['defer'], this.options.query) ||
+        hasDirectives(['stream'], this.options.query)
+      ) {
         // Make sure that we have loadingState for deferred queries
         // If the queryStore has not been initialized, set loading to true and
         // wait for the next update.

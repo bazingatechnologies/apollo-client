@@ -1015,7 +1015,10 @@ export class QueryManager<TStore> {
     const lastResult = observableQuery.getLastResult();
     const { newData, document } = this.getQuery(observableQuery.queryId);
     const isDeferred =
-      document !== null ? hasDirectives(['defer'], document) : false;
+      document !== null
+        ? hasDirectives(['defer'], document) ||
+          hasDirectives(['stream'], document)
+        : false;
     // XXX test this
     if (newData) {
       return maybeDeepFreeze({ data: newData.result, partial: false });
@@ -1194,7 +1197,8 @@ export class QueryManager<TStore> {
     fetchMoreForQueryId?: string;
   }): Promise<ExecutionResult> {
     const { variables, context, errorPolicy = 'none', fetchPolicy } = options;
-    const isDeferred = hasDirectives(['defer'], document);
+    const isDeferred =
+      hasDirectives(['defer'], document) || hasDirectives(['stream'], document);
     const operation = this.buildOperationForLink(document, variables, {
       ...context,
       // TODO: Should this be included for all entry points via
@@ -1453,7 +1457,9 @@ export class QueryManager<TStore> {
     const hasDeferDirective: boolean = (selection.directives &&
       selection.directives.length > 0 &&
       selection.directives.findIndex(directive => {
-        return directive.name.value === 'defer';
+        return (
+          directive.name.value === 'defer' || directive.name.value === 'stream'
+        );
       }) !== -1) as boolean;
     const isLeaf: boolean =
       selection.kind !== Kind.INLINE_FRAGMENT &&
@@ -1498,7 +1504,9 @@ export class QueryManager<TStore> {
         const fragSelectionHasDefer =
           fragSelection.directives &&
           fragSelection.directives.findIndex(
-            directive => directive.name.value === 'defer',
+            directive =>
+              directive.name.value === 'defer' ||
+              directive.name.value === 'stream',
           ) >= 0;
         if (!fragSelectionHasDefer) {
           // Make sure that the existingSelection is not deferred, since all
@@ -1506,7 +1514,9 @@ export class QueryManager<TStore> {
           // to be deferred. This should match the behavior on apollo-server.
           if (existingSelection.directives) {
             existingSelection.directives = existingSelection.directives.filter(
-              directive => directive.name.value !== 'defer',
+              directive =>
+                directive.name.value !== 'defer' &&
+                directive.name.value !== 'stream',
             );
           }
         }

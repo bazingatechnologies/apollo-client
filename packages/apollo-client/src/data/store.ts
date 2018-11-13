@@ -124,6 +124,23 @@ export class DataStore<TSerialized> {
     // the subscription interface should handle not sending us results we no longer subscribe to.
     // XXX I don't think we ever send in an object with errors, but we might in the future...
     if (!graphQLResultHasError(result)) {
+      if (isPatch(result)) {
+        const originalResult: ExecutionResult | null = this.cache.read({
+          query: document,
+          variables: variables,
+          rootId: 'ROOT_SUBSCRIPTION',
+          optimistic: false,
+          returnPartialData: true,
+        });
+        if (originalResult) {
+          this.mergePatch(originalResult, result);
+          result = { data: originalResult };
+        } else {
+          // Nothing may be written to cache if the first response had an error
+          return;
+        }
+      }
+
       this.cache.write({
         result: result.data,
         dataId: 'ROOT_SUBSCRIPTION',

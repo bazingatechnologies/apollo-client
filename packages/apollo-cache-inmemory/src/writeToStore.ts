@@ -206,7 +206,10 @@ export function writeSelectionSetToStore({
             selection.directives &&
             selection.directives.length &&
             selection.directives.some(
-              directive => directive.name && directive.name.value === 'defer',
+              directive =>
+                directive.name &&
+                (directive.name.value === 'defer' ||
+                  directive.name.value === 'stream'),
             );
 
           if (!isDefered && context.fragmentMatcherFunction) {
